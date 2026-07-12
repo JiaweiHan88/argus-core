@@ -24,8 +24,8 @@ describe('codeGraph helpers', () => {
   })
 
   it('repoIdFor slugs the remote owner/name when a remote exists', () => {
-    expect(repoIdFor('C:\\code\\mapbox-gl-js', 'https://github.com/mapbox/mapbox-gl-js.git')).toBe(
-      'mapbox-mapbox-gl-js'
+    expect(repoIdFor('C:\\code\\widget-lib', 'https://github.com/acme/widget-lib.git')).toBe(
+      'acme-widget-lib'
     )
     expect(repoIdFor('/x/y', 'git@github.com:Org/My.Repo.git')).toBe('org-my-repo')
   })
@@ -53,8 +53,8 @@ describe('codeGraph helpers', () => {
   })
 
   it('graphCacheDir nests repoId/scopeKey under graphsRoot', () => {
-    expect(graphCacheDir('C:\\home', 'mapbox-mapbox-gl-js', '_root')).toBe(
-      path.join('C:\\home', 'graphs', 'mapbox-mapbox-gl-js', '_root')
+    expect(graphCacheDir('C:\\home', 'acme-widget-lib', '_root')).toBe(
+      path.join('C:\\home', 'graphs', 'acme-widget-lib', '_root')
     )
   })
 
