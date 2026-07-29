@@ -195,6 +195,7 @@ import { assembleDistillInput } from './services/distill/input'
 import { runCaseDistill } from './services/distill/caseDistiller'
 import { stageDistillOutput } from './services/distill/staging'
 import { similarCases, searchCaseSummaries } from './services/distill/summaries'
+import { caseDistillPromptHash } from './services/distill/promptHash'
 
 let agentService: AgentService | null = null
 let providerStatusService: ProviderStatusService | null = null
@@ -506,7 +507,8 @@ function registerIpc(): void {
     assembleInput: (slug) => assembleDistillInput(db, argusHome, slug, skillsIndexForDistill()),
     distill: (input) => runCaseDistill(input, headlessRun, resolvePrompt),
     stage: (slug, jobId, output) => stageDistillOutput(db, argusHome, slug, jobId, output),
-    broadcast: (p) => broadcast(IPC.distillChanged, p)
+    broadcast: (p) => broadcast(IPC.distillChanged, p),
+    promptHash: () => caseDistillPromptHash(resolvePrompt)
   })
   distillQueue.recoverOnBoot()
   const onCaseClosed = (rec: CaseRecord): void => {
