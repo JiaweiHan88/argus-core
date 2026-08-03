@@ -2497,7 +2497,7 @@ function createWindow(): void {
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    if (isOpenableUrl(details.url)) void shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
