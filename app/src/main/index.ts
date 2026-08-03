@@ -1319,6 +1319,7 @@ function registerIpc(): void {
     panelCommandDecls: () => flattenPanelCommands(packRegistry.windowDecls()),
     onCaseClosed,
     onWorktreeChanged: (slug) => broadcast(IPC.workspacesChanged, slug),
+    defectCorpus,
     dispatchPanelCommand: (caseSlug, packId, windowId, cmd, args) => {
       const w = panelWindow(packId, windowId)
       return w?.decl.kind === 'externalApp'
