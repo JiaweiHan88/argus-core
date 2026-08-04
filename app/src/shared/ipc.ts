@@ -290,7 +290,6 @@ export const IPC = {
   distillRetry: 'distill:retry',
   distillRedistill: 'distill:redistill',
   distillCancel: 'distill:cancel',
-  distillSimilar: 'distill:similar',
   // — defect corpus —
   defectsSearch: 'defects:search',
   defectsTest: 'defects:test',
@@ -299,6 +298,9 @@ export const IPC = {
   defectsGetConfig: 'defects:get-config',
   defectsPutConfig: 'defects:put-config',
   defectsJqlPreview: 'defects:jql-preview',
+  // — unified related history (local cases + defect corpus) —
+  relatedSearch: 'related:search',
+  relatedDefect: 'related:defect',
   // — case RCA reports (part 3a-N) —
   rcaGenerate: 'rca:generate',
   rcaStatus: 'rca:status',

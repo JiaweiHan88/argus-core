@@ -32,12 +32,14 @@ import type { DiagnosticsSnapshot } from '../shared/diagnostics'
 import type {
   CorpusAdminConfig,
   CorpusAdminResult,
+  CorpusDefectRecord,
   CorpusInfo,
   CorpusJqlPreview,
   CorpusSearchInput,
   CorpusSyncStatus,
   SourceSearchResult
 } from '../shared/defectCorpus'
+import type { RelatedSearchInput, RelatedSearchResult } from '../shared/relatedHistory'
 import type { SourceControlStatus } from '../shared/sourcecontrol'
 import type { AgentAccessPayload } from '../shared/agentAccess'
 import type {
@@ -111,7 +113,7 @@ import type {
   PanelRect,
   ExternalAppInfo
 } from '../shared/panels'
-import type { DistillJobRow, SummarySearchHit, DistillStatusPayload } from '../shared/distill'
+import type { DistillJobRow, DistillStatusPayload } from '../shared/distill'
 import type {
   RcaJobRow,
   RcaStatusPayload,
@@ -359,7 +361,6 @@ const argus = {
     retry: (jobId: number): Promise<DistillJobRow> => invoke(IPC.distillRetry, jobId),
     redistill: (slug: string): Promise<DistillJobRow> => invoke(IPC.distillRedistill, slug),
     cancel: (jobId: number): Promise<DistillJobRow> => invoke(IPC.distillCancel, jobId),
-    similar: (slug: string): Promise<SummarySearchHit[]> => invoke(IPC.distillSimilar, slug),
     onChanged: (cb: (p: DistillStatusPayload) => void): (() => void) => {
       const listener = (_e: unknown, p: DistillStatusPayload): void => cb(p)
       ipcRenderer.on(IPC.distillChanged, listener)
@@ -843,6 +844,12 @@ const argus = {
     ): Promise<CorpusAdminResult<CorpusAdminConfig>> => invoke(IPC.defectsPutConfig, id, cfg),
     jqlPreview: (id: string, jql: string): Promise<CorpusAdminResult<CorpusJqlPreview>> =>
       invoke(IPC.defectsJqlPreview, id, jql)
+  },
+  related: {
+    search: (input: RelatedSearchInput): Promise<RelatedSearchResult> =>
+      invoke(IPC.relatedSearch, input),
+    defect: (sourceId: string, key: string): Promise<CorpusAdminResult<CorpusDefectRecord>> =>
+      invoke(IPC.relatedDefect, sourceId, key)
   },
   sourceControl: {
     status: (): Promise<SourceControlStatus> => invoke(IPC.sourceControlStatus)
