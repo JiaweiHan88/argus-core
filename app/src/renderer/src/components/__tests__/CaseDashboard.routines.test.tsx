@@ -8,6 +8,7 @@ import { routinesStore } from '../../lib/routinesStore'
 import { defaultSettings, type SettingsPayload } from '../../../../shared/settings'
 import type { CaseRecord } from '../../../../shared/types'
 import { DEFAULT_MODE } from '../../../../shared/modes'
+import type { RoutineDef, RoutineRunSummary, RoutinesPayload } from '../../../../shared/routines'
 
 const cases: CaseRecord[] = [
   {
@@ -44,6 +45,44 @@ function payload(): SettingsPayload {
   }
 }
 
+const sweep: RoutineDef = {
+  id: 'sweep',
+  name: 'Nightly sweep',
+  prompt: 'Sweep the repo',
+  timeoutMs: 600_000,
+  enabled: true
+}
+
+function run(over: Partial<RoutineRunSummary> = {}): RoutineRunSummary {
+  return {
+    id: 1,
+    routineId: 'sweep',
+    caseSlug: 'NAV-1',
+    sessionId: 7,
+    trigger: 'scheduled',
+    status: 'ok',
+    startedAt: '2026-08-03T02:00:00.000Z',
+    finishedAt: '2026-08-03T02:05:00.000Z',
+    summary: 'nothing new',
+    error: null,
+    reviewedAt: null,
+    ...over
+  }
+}
+
+function routinesPayload(over: Partial<RoutinesPayload> = {}): RoutinesPayload {
+  return {
+    routines: [sweep],
+    loadError: null,
+    runningId: null,
+    queued: [],
+    nextRunAt: {},
+    unreviewedCount: 1,
+    runs: [run()],
+    ...over
+  }
+}
+
 // copied from CaseDashboard.test.tsx (no exported defaultProps there — props are
 // inlined per-test), so we reconstruct the minimal signature-matching props here.
 const defaultProps = {
@@ -68,45 +107,36 @@ beforeEach(() => {
     jira: {
       syncAll: vi.fn().mockResolvedValue({ ok: true, value: { synced: 0, changed: 0, failed: 0 } }),
       onSyncProgress: vi.fn(() => () => {})
-    },
-
-    // The dashboard now also mounts RoutineInbox unconditionally; an empty payload keeps it
-    // hidden so this file's assertions (none of which are about routines) are unaffected.
-    routines: {
-      list: vi.fn().mockResolvedValue({
-        routines: [],
-        loadError: null,
-        runningId: null,
-        queued: [],
-        nextRunAt: {},
-        unreviewedCount: 0,
-        runs: []
-      }),
-      onChanged: vi.fn(() => () => {}),
-      markReviewed: vi.fn(),
-      markAllReviewed: vi.fn()
     }
   } as never
   settingsStore.reset()
   routinesStore.reset()
   ;(window as never as { argus: Record<string, unknown> }).argus.proposals = {
-    list: vi.fn().mockResolvedValue({ proposals: [{ file: 'a.md' }, { file: 'b.md' }] })
+    list: vi.fn().mockResolvedValue({ proposals: [] })
+  }
+  ;(window as never as { argus: Record<string, unknown> }).argus.routines = {
+    list: vi.fn().mockResolvedValue(routinesPayload()),
+    onChanged: vi.fn(() => () => {}),
+    markReviewed: vi.fn(),
+    markAllReviewed: vi.fn()
   }
 })
 
-describe('knowledge pending line', () => {
-  it('shows the pending count when > 0', async () => {
+describe('routine inbox on Home', () => {
+  it('renders above the case grid when runs are unreviewed', async () => {
     render(<CaseDashboard {...defaultProps} />)
-    expect(await screen.findByText(/Knowledge review pending: 2/)).toBeInTheDocument()
+    const inbox = await screen.findByTestId('routine-inbox')
+    const firstCard = screen.getByTestId('case-title')
+    // Placement is the point of this increment, so assert it rather than mere presence.
+    // DOCUMENT_POSITION_FOLLOWING means the argument comes after the node it is called on.
+    expect(inbox.compareDocumentPosition(firstCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  it('hides when 0', async () => {
+  it('renders nothing when there is nothing to review', async () => {
     ;(
-      window as never as { argus: { proposals: { list: ReturnType<typeof vi.fn> } } }
-    ).argus.proposals.list.mockResolvedValue({ proposals: [] })
+      window as never as { argus: { routines: { list: ReturnType<typeof vi.fn> } } }
+    ).argus.routines.list.mockResolvedValue(routinesPayload({ unreviewedCount: 0, runs: [] }))
     render(<CaseDashboard {...defaultProps} />)
-    await waitFor(() =>
-      expect(screen.queryByText(/Knowledge review pending/)).not.toBeInTheDocument()
-    )
+    await waitFor(() => expect(screen.queryByTestId('routine-inbox')).not.toBeInTheDocument())
   })
 })
